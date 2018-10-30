@@ -161,7 +161,8 @@ work on all Unices, but your mileage may vary.
 
 ##Development
 
-See https://github.com/7terminals/puppet-tomcat
+This module is far away fork of https://github.com/7terminals/puppet-tomcat and it is 
+managed at 
 
 
 Test with
