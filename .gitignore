@@ -1,0 +1,13 @@
+*.tar.bz2
+*.gz
+*.zip
+*.tar
+pkg/
+spec/fixtures
+.idea/
+.kitchen/
+.librarian/
+.tmp/
+Gemfile.lock
+Puppetfile.lock
+*.swp

@@ -1,0 +1,65 @@
+---
+tomcat::deployment_base_dir: '/srv/tomcat/'
+tomcat::user: 'tomcat1'
+tomcat::group: 'tomcat2'
+tomcat::manage_usergroup: true
+tomcat::packages: 
+   - openjdk-8-jre
+   - openjdk-8-jdk
+
+tomcat::instances: 
+  'foobar1':
+     port_prefix: "1"
+     port_sub_prefix: "0"
+     downloadurl: "http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/tomcat/tomcat-9/v9.0.12/bin/apache-tomcat-9.0.12.tar.gz"
+     tarball: "apache-tomcat-9.0.12.tar.gz"
+     deploymentdir: "/srv/tomcat/foobar1"
+     javaheapopts: "-Xms64M -Xmx256M"
+     javaopts: ""
+     default_webapp_docs: 'absent'
+     default_webapp_examples: 'absent'
+     default_webapp_hostmanager: 'present'
+     default_webapp_manager: 'present'
+     default_webapp_root: 'absent'
+     adminuser: 'admin'
+     adminpassword: 'admin'
+     template_params:
+        mysql_jndi: "jdbc/fooDB"
+        mysql_username: "foobar"
+        mysql_password: "foobar"
+        mysql_jdbcurl: "jdbc:mysql://127.0.0.1:3306/bar_foobar?useUnicode=true;characterEncoding=utf8"
+        mysql_removeAbandonedTimeout: "600"
+        mysql_driverclass: "com.mysql.jdbc.Driver"
+     mariadbjar: "http://central.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar"
+     instance_archive_base_logdir: '/tmp/'
+     setenv_extra:
+         - "export LC_ALL=en_US.UTF-8"
+         - "export LANG=en_US.UTF-8"
+  'foobar2':
+     port_prefix: "2"
+     port_sub_prefix: "0"
+     downloadurl: "http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/tomcat/tomcat-9/v9.0.12/bin/apache-tomcat-9.0.12.tar.gz"
+     tarball: "apache-tomcat-9.0.12.tar.gz"
+     deploymentdir: "/srv/tomcat/foobar2"
+     javaheapopts: "-Xms64M -Xmx256M"
+     javaopts: ""
+     default_webapp_docs: 'absent'
+     default_webapp_examples: 'absent'
+     default_webapp_hostmanager: 'present'
+     default_webapp_manager: 'present'
+     default_webapp_root: 'absent'
+     adminuser: 'admin'
+     adminpassword: 'admin'
+     template_params:
+        mysql_jndi: "jdbc/fooDB"
+        mysql_username: "foobar"
+        mysql_password: "foobar"
+        mysql_jdbcurl: "jdbc:mysql://127.0.0.1:3306/bar_foobar?useUnicode=true;characterEncoding=utf8"
+        mysql_removeAbandonedTimeout: "600"
+        mysql_driverclass: "com.mysql.jdbc.Driver"
+     mariadbjar: "http://central.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar"
+     instance_archive_base_logdir: '/tmp/'
+     setenv_extra:
+         - "export LC_ALL=en_US.UTF-8"
+         - "export LANG=en_US.UTF-8"
+

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:    tomcats
+# Required-Start: $remote_fs $syslog
+# Required-Stop:  $remote_fs $syslog
+# Default-Start:  
+# Default-Stop:      
+# Short-Description: Control script for tomcat instances
+### END INIT INFO
+
+
+if [ -z "$1" ] && [ -z "$2" ];then
+   echo "$0 <option> [<regex>|all] <option>..<option>"
+   exit 1
+fi
+
+ACTION="$1"
+REGEX="$2"
+
+if [ "$REGEX" = "all" ];then
+  REGEX=".*"
+fi
+
+if [ -z "$3" ];then
+   EXTRAOPTS=""
+else
+   EXTRAOPTS="${@:3}"
+fi
+
+
+RET="0"
+for script in /etc/init.d/tomcat-*;
+do
+   if ( echo "$(basename $script)"|egrep "tomcat-${REGEX}" );then
+      echo "** $script $ACTION $EXTRAOPTS"
+      $script $ACTION $EXTRAOPTS
+      CRET="$?"
+      if [ "$CRET" != "0" ];then
+         RET="$CRET"
+      fi
+   fi
+done
+exit $RET

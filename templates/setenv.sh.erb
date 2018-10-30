@@ -1,0 +1,72 @@
+<%
+def get_var(value, regex)
+  if ( value =~ regex )
+    return value
+  else
+    raise ArgumentError, "#{value} does not match to #{regex}"
+  end
+end
+-%>
+echo "LOADING setenv.sh : $BASH_SOURCE"
+
+# unset DSIPALY to enforce java headless mode
+unset DISPLAY
+
+export TOMCAT_LOGDIR="<%= @deploymentdir %>/logs"
+ 
+# cleanup tempdir
+export CATALINA_TMPDIR=${TOMCAT_LOGDIR}/temp
+if [ -d "$CATALINA_TMPDIR" ];then
+  echo "CLEANUP CATALINA_TMPDIR $CATALINA_TMPDIR/*"
+  rm $CATALINA_TMPDIR/* 2>/dev/null
+else
+  echo "CREATING CATALINA_TMPDIR $CATALINA_TMPDIR"
+  mkdir -p $CATALINA_TMPDIR
+fi
+ 
+# clean up work dir (i.e. serialized sessions)
+export CATALINA_WORK=${TOMCAT_LOGDIR}/work
+if [ -d "$CATALINA_WORK" ];then
+  echo "CLEANUP CATALINA_WORK $CATALINA_WORK/*"
+  rm $CATALINA_WORK/* 2>/dev/null
+else
+  echo "CREATING CATALINA_WORK $CATALINA_WORK"
+  mkdir -p $CATALINA_WORK
+fi
+ 
+# Memory Options
+# (its a good idea to size minheap == maxheap)
+JAVA_OPTS="$JAVA_OPTS <%= @javaheapopts%> "
+ 
+# Optimize Hotspot
+JAVA_OPTS="$JAVA_OPTS -server"
+ 
+# JAVA HEAP SETTINGS
+if [ "$1" = "start" ];then
+  echo "adding gclog options" 
+  JAVA_OPTS="$JAVA_OPTS -verbose:gc -Xloggc:${TOMCAT_LOGDIR}/java_gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=10M"
+  JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC"
+  JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime"
+fi
+JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote <%= @javaopts %>"
+ 
+# http://blog.ralscha.ch/?p=75
+# Vermeidet das Tomcat sich wegen JSP-Konstrukten wie diesen auf die Nase legt
+# &lt;my:tag title=?&lt;%= (String)session.getAttribute(?attrName?) %&gt;? /&gt;
+# JAVA_OPTS="$JAVA_OPTS -Dorg.apache.jasper.compiler.Parser.STRICT_QUOTE_ESCAPING=false"
+
+DEBUG="<%= @debug_port %>"
+if ( [ "$1" = "start" ] && [ "$DEBUG" = "yes" ] );then
+    DEBUG_PORT="<%= @port_prefix %><%= @port_sub_prefix %>000"
+    echo "START DEBUG PORT $DEBUG_PORT"
+    export JAVA_OPTS="$JAVA_OPTS -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=n"
+fi
+
+# Make JAVA_OPTS visable to all child processes
+export JAVA_OPTS
+
+# Extra lines added setenv_extra
+<% @setenv_extra.flatten.each do |entry| -%>
+<%= entry %>
+<% end -%>
+

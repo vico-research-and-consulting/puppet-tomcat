@@ -1,0 +1,13 @@
+{
+  "name": "scoopex-tomcat",
+  "description": "The Tomcat module installs the Apache Tomcat binary distribution onto your nodes.\nYou may set the Tomcat binary distribution package, the directory into which\nit will install, the user that will own the package, and whether or not a number\nof default Tomcat resources will be installed as well.",
+  "version": "0.0.5",
+  "author": "Francis Pereira, Scott Prater",
+  "source": "https://github.com/scoopex/puppet-tomcat",
+  "project_page": "https://github.com/7terminals/puppet-tomcat",
+  "summary": "The tomcat module installs the Apache Tomcat binary distribution.",
+  "dependencies": [
+    {"name":"puppetlabs/stdlib","version_requirement":">=3.0.0"}
+  ],
+  "license": "MIT"
+}

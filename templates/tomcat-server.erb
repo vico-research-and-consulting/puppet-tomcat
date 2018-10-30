@@ -1,0 +1,223 @@
+<%
+def get_var(value, regex)
+  if ( value =~ regex )
+    return value
+  else
+    raise ArgumentError, "#{value} does not match to #{regex}"
+  end
+end
+-%>
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:    tomcat-<%= @instancename %>
+# Required-Start: $remote_fs $syslog
+# Required-Stop:  $remote_fs $syslog
+# Default-Start:  2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: tomcat daemon providing java services
+### END INIT INFO
+
+
+################################################################################
+#### 
+#### HELPERS
+
+WHOAMI="$(whoami)"
+
+execute(){
+ local COMMAND="$1"
+ local TOMCAT_USER="$2"
+ if [ "$WHOAMI" = "$TOMCAT_USER" ];then
+        echo "[EXECUTE] sh -c \"$COMMAND\""
+        logger -t tomcat "$INSTANCENAME | sh -c \"$COMMAND\""
+        sh -c "$COMMAND"
+ elif [ "$WHOAMI" = "root" ];then
+        echo "[EXECUTE] su --login -c \"$COMMAND\" $TOMCAT_USER"
+        logger -t tomcat "$INSTANCENAME | su --login -c \"$COMMAND\" $TOMCAT_USER"
+        su --login -c "$COMMAND" $TOMCAT_USER
+ else
+        echo "[EXECUTE] su --login -c \"$COMMAND\" $TOMCAT_USER :  Unable to execute, you are not root"
+        logger -t tomcat "$INSTANCENAME | ERROR: Unable to execute '$COMMAND', you are not root"
+ fi
+}
+
+
+usage(){
+   cat <<EOF
+
+Usage: $0 {start|stop|stop <seconds to wait>|kill|restart|status|run}
+
+Options:
+
+  stop    : stop instance
+  start   : start instances
+  kill    : send SIGKILL to the specified instance
+  restart : stop Server, wait 60 seconds for proper termination, start server
+  status  : show server status
+  run     : start tomcat in non-daemon mode 
+            (console, useful for debugging)
+EOF
+   exit 1
+
+}
+# Provides a list of tomcat PIDS
+tomcat_pids(){
+  local TOMCAT_PATH="$(echo -n "$1"|sed '~s,/*$,,')"
+  echo "TOMCAT_PATH $TOMCAT_PATH" >&2
+  ps auxwwww|egrep "java.*catalina.home=${TOMCAT_PATH} "|grep -v grep|awk '{print $2}' | xargs 
+}
+
+################################################################################
+#### 
+#### MAIN
+
+TOMCAT_INSTANCE="<%= @instancename %>"
+TOMCAT_PATH="<%= @deploymentdir %>"
+TOMCAT_LOGDIR="<%= @logbasedir %>/<%= @instancename %>"
+TOMCAT_USER="<%= @user %>"
+TOMCAT_GROUP="<%= @group %>"
+
+echo "******************************************************************************"
+echo "TOMCAT INSTANCE : $TOMCAT_INSTANCE"
+echo "TOMCAT PATH     : $TOMCAT_PATH"
+echo "TOMCAT LOGFILES : $TOMCAT_LOGDIR/tomcat/"
+
+################################################################
+###
+### CHECK ROOT
+
+COMMAND="$1"
+TOMCAT_PIDS="$(tomcat_pids $TOMCAT_PATH 2>/dev/null)"
+
+if [ "$COMMAND" == "status" ] || [ "$COMMAND" == "monitor" ];then
+       for pid in $TOMCAT_PIDS;do
+	      RUNTIME="$(ps -p $pid ho etime |awk '{print $1}') $RUNTIME"
+       done
+       if [ -n "$TOMCAT_PIDS" ];then
+        echo "STATUS          : RUNNING (PID $TOMCAT_PIDS, RUNTIME $RUNTIME)"
+        exit 0
+       else
+        echo "STATUS          : STOPPED"
+        exit 1
+       fi
+fi
+
+# Create a lockfile
+LOCK_FILE="$TOMCAT_LOGDIR/tomcat-servers.lock"
+if ( ! ( set -C; : > $LOCK_FILE 2> /dev/null ) );then
+  echo "Already running"
+  exit 1
+fi
+
+cleanup(){
+   echo;
+   rm -f $LOCK_FILE >/dev/null 2>&1; 
+   echo removed $LOCK_FILE
+}
+
+trap "cleanup" EXIT TERM INT
+
+
+case "$COMMAND" in
+  start)
+
+    if [ -n "$TOMCAT_PIDS" ];then
+         echo
+	      echo "WARNING: Instance is already running, skipping start"
+	      exit 0
+    fi
+    echo
+    echo "****************************************************************************************************"
+    echo "FIXING PERMISSIONS IN $TOMCAT_LOGDIR"
+    if [ -z "$TOMCAT_LOGDIR" ] ; then
+	   echo "ERROR: TOMCAT_LOGDIR not defined this should never happen"
+	   exit 1
+    fi
+    if ( !( echo "$TOMCAT_LOGDIR"|egrep -q "^/.+/.+" ));then
+	   echo "ERROR: TOMCAT_LOGDIR $TOMCAT_LOGDIR looks dangerous"
+	   exit 1
+    fi
+    # This should happen in setenv.sh, for security we fix the permissions here
+    mkdir -p $TOMCAT_LOGDIR
+    chown -R $TOMCAT_USER:$TOMCAT_GROUP $TOMCAT_LOGDIR
+    chmod -R 750 $TOMCAT_LOGDIR
+    echo
+    execute "cd $TOMCAT_PATH ; bin/startup.sh" $TOMCAT_USER
+    # backup exit status, to bypass signal handler
+    RET="$?"
+    exit $RET
+    ;;
+  run)
+    if [ -n "$TOMCAT_PIDS" ];then
+        echo
+	echo "ERROR: Instance is already running, unable to start"
+	exit 1
+    fi
+    echo "****************************************************************************************************"
+    echo "INVOKING: $TOMCAT_PATH/bin/catalina.sh run"
+    echo
+    echo "STOP WITH: STRG + c"
+    execute "cd $TOMCAT_PATH ; bin/catalina.sh run" $TOMCAT_USER
+    ;;
+  stop)
+    echo "****************************************************************************************************"
+    if [ -n "$TOMCAT_PIDS" ];then
+      echo "INVOKING: $TOMCAT_PATH/bin/shutdown.sh"
+      shift
+      execute "cd $TOMCAT_PATH ; bin/shutdown.sh $@" $TOMCAT_USER
+      RET="$?"
+    else
+      echo "<no corosponding process found>"
+      exit 0
+    fi
+    exit $RET
+    ;;
+
+  kill)
+    echo "****************************************************************************************************"
+    if [ -n "$TOMCAT_PIDS" ];then
+       ps auxwwww|grep "catalina.home=${TOMCAT_PATH}"
+       echo "Sending SIGQUIT to the following pids $TOMCAT_PIDS "
+       echo "(stacktraces of all threads should appear catalina.out for debugging purposes)"
+       kill -QUIT $TOMCAT_PIDS &
+       sleep 2
+       echo "Sending SIGKILL to the following pids $TOMCAT_PIDS"
+       kill -KILL $TOMCAT_PIDS
+    else
+       echo "<no corosponding processes found>"
+    fi
+    echo
+    ;;
+
+  restart)
+    rm -f $LOCK_FILE
+    trap "" EXIT TERM INT
+    $0 stop
+    for ((i=12; i>0; i--));
+    do
+      TOMCAT_PIDS="$(tomcat_pids $TOMCAT_PATH 2>/dev/null)"
+      if [ -z "$TOMCAT_PIDS" ];then
+         echo "INFO: Tomcat stopped"
+	      break	
+      fi
+      sleep 5
+      echo "INFO: Still running, timeout in $(($i * 5)) seconds"
+    done
+    TOMCAT_PIDS="$(tomcat_pids $TOMCAT_PATH 2>/dev/null)"
+    if [ -n "$TOMCAT_PIDS" ];then
+      echo "ERROR: unable to shutdown"
+      exit 1
+    fi
+    $0 start
+    exit $?
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac
+
+exit 0
+
+# vim: filetype=sh

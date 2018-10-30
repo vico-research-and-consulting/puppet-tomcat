@@ -1,0 +1,16 @@
+<%
+def get_var(value, regex)
+  if ( value =~ regex )
+    return value
+  else
+    raise ArgumentError, "#{value} does not match to #{regex}"
+  end
+end
+-%>
+<tomcat-users>
+  <role rolename="manager-gui"/>
+  <role rolename="manager-script"/>
+  <role rolename="manager-jmx"/>
+  <role rolename="manager-status"/>
+  <user username="<%= @adminuser %>" password="<%= @adminpassword %>" roles="manager-gui,manager-script,manager-jmx,manager-status"/>
+g</tomcat-users>

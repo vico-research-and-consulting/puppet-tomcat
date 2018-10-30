@@ -1,0 +1,36 @@
+<%
+def get_var(value, regex)
+  if ( value =~ regex )
+    return value
+  else
+    raise ArgumentError, "#{value} does not match to #{regex}"
+  end
+end
+-%>
+#!/bin/bash
+
+DIR="<%= @logbasedir %>/<%= @instancename %>"
+DATE="$(date --date="today - 1 day" "+%Y-%m-%d")"
+ADIR="<%= @instance_archive_base_logdir %>/$DATE/$(hostname)/<%= @instancename %>"
+
+echo "truncating and compressing catalina.out"
+cp "$DIR/catalina.out" "$DIR/catalina.out.${DATE}"
+gzip "$DIR/catalina.out.${DATE}"
+chown <%= @user %>:<%= @group %> "$DIR/catalina.out.${DATE}.gz"
+echo -n > "$DIR/catalina.out"
+
+
+find $DIR -maxdepth 1 -mindepth 1 -mtime +1 -type f ! -name "*.gz" | while read file;
+do
+    echo "zipping file $file"
+    gzip $file
+    chown <%= @user %>:<%= @group %> "${file}.gz"
+done
+
+find $DIR -maxdepth 1 -mindepth 1 -mtime +1 -type f | while read file;
+do
+    echo "archiving file $file to $ADIR"
+    mkdir -p $ADIR && mv $file $ADIR/
+done
+
+
