@@ -41,8 +41,11 @@ end
 # testing basic function
 #----------------------------------------------------------------------
 
-describe command('curl http://127.0.0.1:10080/') do
-  its(:stdout) { should match(/Welcome/) }
+describe command('curl "http://admin:admin@127.0.0.1:10080/manager/jmxproxy?qry=Catalina:type=Service"') do
+  its(:stdout) { should match(/STARTED/) }
+end
+describe command('curl "http://admin:admin@127.0.0.1:20080/manager/jmxproxy?qry=Catalina:type=Service"') do
+  its(:stdout) { should match(/STARTED/) }
 end
 
 #----------------------------------------------------------------------

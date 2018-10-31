@@ -27,9 +27,10 @@ tomcat::instances:
         mysql_jndi: "jdbc/fooDB"
         mysql_username: "foobar"
         mysql_password: "foobar"
-        mysql_jdbcurl: "jdbc:mysql://127.0.0.1:3306/bar_foobar?useUnicode=true;characterEncoding=utf8"
+        mysql_jdbcurl: "jdbc:mysql://127.0.0.1:3306/bar_foobar"
+        mysql_connection_properties: "useUnicode=true;characterEncoding=utf8"
         mysql_removeAbandonedTimeout: "600"
-        mysql_driverclass: "com.mysql.jdbc.Driver"
+        mysql_driverclass: "com.mysql.cj.jdbc.Driver"
      mariadbjar: "http://central.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar"
      instance_archive_base_logdir: '/tmp/'
      setenv_extra:
@@ -54,9 +55,10 @@ tomcat::instances:
         mysql_jndi: "jdbc/fooDB"
         mysql_username: "foobar"
         mysql_password: "foobar"
-        mysql_jdbcurl: "jdbc:mysql://127.0.0.1:3306/bar_foobar?useUnicode=true;characterEncoding=utf8"
+        mysql_jdbcurl: "jdbc:mysql://127.0.0.1:3306/bar_foobar"
+        mysql_connection_properties: "useUnicode=true;characterEncoding=utf8"
         mysql_removeAbandonedTimeout: "600"
-        mysql_driverclass: "com.mysql.jdbc.Driver"
+        mysql_driverclass: "com.mysql.cj.jdbc.Driver"
      mariadbjar: "http://central.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar"
      instance_archive_base_logdir: '/tmp/'
      setenv_extra:

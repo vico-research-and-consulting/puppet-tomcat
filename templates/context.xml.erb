@@ -50,6 +50,7 @@ end
       username="<%= get_var(@template_params["mysql_username"],/.+/) %>"
       password="<%= get_var(@template_params["mysql_password"],/.+/) %>"
       driverClassName="<%= get_var(@template_params["mysql_driverclass"],/.+/) %>"
-      url="<%= get_var(@template_params["mysql_jdbcurl"],/.+/) %>"/>
+      url="<%= get_var(@template_params["mysql_jdbcurl"],/.+/) %>"
+      connectionProperties="<%= get_var(@template_params["mysql_connection_properties"],/.*/) %>"/>
 </Context>
 
