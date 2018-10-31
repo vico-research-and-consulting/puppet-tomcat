@@ -48,7 +48,13 @@ if [ "$1" = "start" ];then
   JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC"
   JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime"
 fi
-JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote <%= @javaopts %>"
+
+if [ "$1" = "start" ];then
+JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=<%= @port_prefix %><%= @port_sub_prefix %>999 -Dcom.sun.management.jmxremote.ssl=false"
+JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.authenticate=true"
+JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.password.file=><%= @deploymentdir %>/conf/jmxremote.password"
+JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.access.file=<%= @deploymentdir %>/conf/jmxremote.access"
+JAVA_OPTS="$JAVA_OPTS <%= @javaopts %>"
  
 # http://blog.ralscha.ch/?p=75
 # Vermeidet das Tomcat sich wegen JSP-Konstrukten wie diesen auf die Nase legt

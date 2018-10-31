@@ -243,6 +243,23 @@ define tomcat::instance (
     content => template('tomcat/tomcat-users.conf.erb'),
     require => Exec["move_tomcat-${instancename}"],
   }
+
+  file { "${deploymentdir}/conf/jmxremote.password":
+    owner   => $user,
+    group   => $group,
+    mode    => '0700',
+    content => "${adminuser} ${adminpassword}",
+    require => Exec["move_tomcat-${instancename}"],
+  }
+
+  file { "${deploymentdir}/conf/jmxremote.access":
+    owner   => $user,
+    group   => $group,
+    mode    => '0700',
+    content => "${adminuser} readwrite",
+    require => Exec["move_tomcat-${instancename}"],
+  }
+
   if $notify_service {
     File["${deploymentdir}/conf/tomcat-users.xml"] ~> Service["tomcat-${instancename}"]
   }
@@ -278,6 +295,8 @@ define tomcat::instance (
     require    => [
       File["$logbasedir/$instancename"],
       File["${deploymentdir}/conf/tomcat-users.xml"],
+      File["${deploymentdir}/conf/jmxremote.access"],
+      File["${deploymentdir}/conf/jmxremote.password"],
       File["${deploymentdir}/conf/server.xml"],
       File["${deploymentdir}/conf/context.xml"],
       File["${deploymentdir}/bin/setenv.sh"],
