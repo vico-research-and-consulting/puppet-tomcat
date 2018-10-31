@@ -50,12 +50,13 @@ if [ "$1" = "start" ];then
 fi
 
 if [ "$1" = "start" ];then
-JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=<%= @port_prefix %><%= @port_sub_prefix %>999 -Dcom.sun.management.jmxremote.ssl=false"
-JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.authenticate=true"
-JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.password.file=<%= @deploymentdir %>/conf/jmxremote.password"
-JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.access.file=<%= @deploymentdir %>/conf/jmxremote.access"
-JAVA_OPTS="$JAVA_OPTS <%= @javaopts %>"
- 
+    JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=<%= @port_prefix %><%= @port_sub_prefix %>999 -Dcom.sun.management.jmxremote.ssl=false"
+    JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.authenticate=true"
+    JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.password.file=<%= @deploymentdir %>/conf/jmxremote.password"
+    JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.access.file=<%= @deploymentdir %>/conf/jmxremote.access"
+    JAVA_OPTS="$JAVA_OPTS <%= @javaopts %>"
+fi
+
 # http://blog.ralscha.ch/?p=75
 # Vermeidet das Tomcat sich wegen JSP-Konstrukten wie diesen auf die Nase legt
 # &lt;my:tag title=?&lt;%= (String)session.getAttribute(?attrName?) %&gt;? /&gt;
@@ -68,11 +69,14 @@ if ( [ "$1" = "start" ] && [ "$DEBUG" = "yes" ] );then
     export JAVA_OPTS="$JAVA_OPTS -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=n"
 fi
 
-# Make JAVA_OPTS visable to all child processes
-export JAVA_OPTS
 
-# Extra lines added setenv_extra
+# Start of extra lines added setenv_extra
 <% @setenv_extra.flatten.each do |entry| -%>
 <%= entry %>
 <% end -%>
+# End of extra lines added setenv_extra
+
+
+# Make JAVA_OPTS visable to all child processes
+export JAVA_OPTS
 
