@@ -13,7 +13,7 @@ define tomcat::instance (
   Variant[Enum['present', 'absent'], String] $default_webapp_root        = present,
   Boolean $enable_service                                                = true,
   Boolean $notify_service                                                = true,
-  Variant[Enum['running', 'stoppe'], String] $ensure                     = 'running',
+  Variant[Enum['running', 'stopped'], String] $ensure                    = 'running',
   Stdlib::Absolutepath $logbasedir                                       = "/var/log/tomcat",
   String $javaheapopts                                                   = "-Xms256M -Xmx768M",
   String $javaopts                                                       = "",
@@ -28,6 +28,7 @@ define tomcat::instance (
   String $port_sub_prefix                                                = '8',
   String $debug_port                                                     = "no",
   String $maxThreads                                                     = "100",
+  String $max_header_size                                                = "4096",
   Array[String] $setenv_extra                                            = [],
   String $logrotate_crontab_spec                                         = "0 3 * * *",
 ) {
@@ -77,7 +78,7 @@ define tomcat::instance (
 
   exec { "create_target_tomcat-${instancename}":
     cwd     => '/',
-    command => "mkdir -p ${deploymentdir}",
+    command => "mkdir -p ${deploymentdir}/",
     creates => $deploymentdir,
     require => Exec["extract_tomcat-${instancename}"],
   }
