@@ -91,12 +91,22 @@ COMMAND="$1"
 TOMCAT_PIDS="$(tomcat_pids $TOMCAT_PATH 2>/dev/null)"
 
 if [ "$COMMAND" == "status" ] || [ "$COMMAND" == "monitor" ];then
+       RET="0"
+<% if @template_params.key?('status_command') %>
+       execute "<%= @template_params['status_command'] %>" $TOMCAT_USER
+       RET="$?"
+<% end %>
        for pid in $TOMCAT_PIDS;do
 	      RUNTIME="$(ps -p $pid ho etime |awk '{print $1}') $RUNTIME"
        done
        if [ -n "$TOMCAT_PIDS" ];then
-        echo "STATUS          : RUNNING (PID $TOMCAT_PIDS, RUNTIME $RUNTIME)"
-        exit 0
+           if [ "$RET" = "0" ];then
+              echo "STATUS          : RUNNING (PID $TOMCAT_PIDS, RUNTIME $RUNTIME)"
+              exit 0
+           else
+              echo "STATUS          : RUNNING, BUT FAILED STATUS (PID $TOMCAT_PIDS, RUNTIME $RUNTIME)"
+              exit $RET
+           fi
        else
         echo "STATUS          : STOPPED"
         exit 1
@@ -142,7 +152,7 @@ case "$COMMAND" in
     chown -R $TOMCAT_USER:$TOMCAT_GROUP $TOMCAT_LOGDIR
     chmod -R 750 $TOMCAT_LOGDIR
     echo
-<% if @template_params['start_command'] == "" %>
+<% if @template_params.key?('start_command') %>
     execute "<%= @template_params['start_command'] %>" $TOMCAT_USER
 <% else %>
     execute "cd $TOMCAT_PATH ; bin/startup.sh" $TOMCAT_USER
@@ -172,7 +182,7 @@ case "$COMMAND" in
     if [ -n "$TOMCAT_PIDS" ];then
       echo "INVOKING: $TOMCAT_PATH/bin/shutdown.sh"
       shift
-<% if @template_params['stop_command'] == "" %>
+<% if @template_params.key?('stop_command') %>
       execute "<%= @template_params['stop_command'] %>" $TOMCAT_USER
 <% else %>
       execute "cd $TOMCAT_PATH ; bin/shutdown.sh $@" $TOMCAT_USER

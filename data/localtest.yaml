@@ -25,6 +25,7 @@ tomcat::instances:
      adminpassword: 'admin'
      template_params:
         run_command: 'echo run is not available on this instance; false'
+        status_command: 'echo WOW COOL;true'
         mysql_jndi: "jdbc/fooDB"
         mysql_username: "foobar"
         mysql_password: "foobar"
