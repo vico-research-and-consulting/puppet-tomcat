@@ -65,7 +65,7 @@ if [ "$1" = "start" ];then
       JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime"
    else
       # https://dzone.com/articles/disruptive-changes-to-gc-logging-in-java-9
-      JAVA_OPTS="$JAVA_OPTS -Xlog:gc*:file=/var/log/tomcat7/gc.%t_%p.log:time:filecount=5:filesize=30720:task=trace:heap=debug:age=trace:safepoint"
+      JAVA_OPTS="$JAVA_OPTS -Xlog:gc*:file=${TOMCAT_LOGDIR}/gc.%t_%p.log:time:filecount=5:filesize=30720:task=trace:heap=debug:age=trace:safepoint"
    fi
 fi
 
