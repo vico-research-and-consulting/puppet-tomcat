@@ -11,8 +11,8 @@ tomcat::instances:
   'foobar1':
      port_prefix: "1"
      port_sub_prefix: "0"
-     downloadurl: "http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/tomcat/tomcat-9/v9.0.12/bin/apache-tomcat-9.0.12.tar.gz"
-     tarball: "apache-tomcat-9.0.12.tar.gz"
+     downloadurl: "http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/tomcat/tomcat-9/v9.0.19/bin/apache-tomcat-9.0.19.tar.gz"
+     tarball: "apache-tomcat-9.0.19.tar.gz"
      deploymentdir: "/srv/tomcat/foobar1"
      javaheapopts: "-Xms64M -Xmx256M"
      javaopts: ""
@@ -39,8 +39,8 @@ tomcat::instances:
   'foobar2':
      port_prefix: "2"
      port_sub_prefix: "0"
-     downloadurl: "http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/tomcat/tomcat-9/v9.0.12/bin/apache-tomcat-9.0.12.tar.gz"
-     tarball: "apache-tomcat-9.0.12.tar.gz"
+     downloadurl: "http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/tomcat/tomcat-9/v9.0.19/bin/apache-tomcat-9.0.19.tar.gz"
+     tarball: "apache-tomcat-9.0.19.tar.gz"
      deploymentdir: "/srv/tomcat/foobar2"
      javaheapopts: "-Xms64M -Xmx256M"
      javaopts: ""

@@ -3,68 +3,83 @@ def get_var(value, regex)
   if ( value =~ regex )
     return value
   else
-    raise ArgumentError, "#{value} does not match to #{regex}"
+     raise ArgumentError, ">>>#{value}<<< does not match to regex >>>#{regex}<<< : #{caller[0]}"
   end
 end
 -%>
-echo "LOADING setenv.sh : $BASH_SOURCE"
+echo "LOADING <%= get_var(@deploymentdir, /\/.+/) %>/bin/setenv.sh"
 
-# unset DSIPALY to enforce java headless mode
+# unset DISPLAY to enforce java headless mode
 unset DISPLAY
 
-export TOMCAT_LOGDIR="<%= @deploymentdir %>/logs"
+JAVA_MAJOR_VERSION=$(java -version 2>&1 | sed -E -n 's/.* version "([^.-]*).*"/\1/p' | cut -d' ' -f1)
+if [ -z "$JAVA_MAJOR_VERSION" ];then
+   echo "ERROR: unable to detect java major release"
+   exit 1
+fi
+
+export TOMCAT_LOGDIR="<%= get_var(@deploymentdir, /\/.+/) %>/logs"
  
 # cleanup tempdir
 export CATALINA_TMPDIR=${TOMCAT_LOGDIR}/temp
+
 if [ -d "$CATALINA_TMPDIR" ];then
+<% if @template_params['cleanup_tempdir'] == 'true' %>
   echo "CLEANUP CATALINA_TMPDIR $CATALINA_TMPDIR/*"
   rm $CATALINA_TMPDIR/* 2>/dev/null
+<% else %>
+  echo "CATALINA_TMPDIR $CATALINA_TMPDIR EXISTS"
+<% end %>
 else
   echo "CREATING CATALINA_TMPDIR $CATALINA_TMPDIR"
   mkdir -p $CATALINA_TMPDIR
 fi
  
 # clean up work dir (i.e. serialized sessions)
-export CATALINA_WORK=${TOMCAT_LOGDIR}/work
-if [ -d "$CATALINA_WORK" ];then
-  echo "CLEANUP CATALINA_WORK $CATALINA_WORK/*"
-  rm $CATALINA_WORK/* 2>/dev/null
+export CATALINA_WORKDIR=${TOMCAT_LOGDIR}/work
+if [ -d "$CATALINA_WORKDIR" ];then
+<% if @template_params['cleanup_workdir'] == 'true' %>
+  echo "CLEANUP CATALINA_WORKDIR $CATALINA_WORKDIR/*"
+  rm -$CATALINA_WORKDIR/* 2>/dev/null
+<% else %>
+  echo "CATALINA_WORKDIR $CATALINA_WORKDIR EXISTS"
+<% end %>
 else
-  echo "CREATING CATALINA_WORK $CATALINA_WORK"
-  mkdir -p $CATALINA_WORK
+  echo "CREATING CATALINA_WORKDIR $CATALINA_WORKDIR"
+  mkdir -p $CATALINA_WORKDIR
 fi
  
 # Memory Options
 # (its a good idea to size minheap == maxheap)
-JAVA_OPTS="$JAVA_OPTS <%= @javaheapopts%> "
+JAVA_OPTS="$JAVA_OPTS <%= get_var(@javaheapopts, /-Xms.+.*-Xmx.+/) %> "
  
 # Optimize Hotspot
 JAVA_OPTS="$JAVA_OPTS -server"
  
 # JAVA HEAP SETTINGS
 if [ "$1" = "start" ];then
-  echo "adding gclog options" 
-  JAVA_OPTS="$JAVA_OPTS -verbose:gc -Xloggc:${TOMCAT_LOGDIR}/java_gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=10M"
-  JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC"
-  JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime"
+   echo "adding gclog options for java major release $JAVA_MAJOR_VERSION"
+   if [ "$JAVA_MAJOR_VERSION" -lt 10 ];then
+      JAVA_OPTS="$JAVA_OPTS -verbose:gc -Xloggc:${TOMCAT_LOGDIR}/java_gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=10M"
+      JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintHeapAtGC"
+      JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime"
+   else
+      # https://dzone.com/articles/disruptive-changes-to-gc-logging-in-java-9
+      JAVA_OPTS="$JAVA_OPTS -Xlog:gc*:file=/var/log/tomcat7/gc.%t_%p.log:time:filecount=5:filesize=30720:task=trace:heap=debug:age=trace:safepoint"
+   fi
 fi
 
 if [ "$1" = "start" ];then
-    JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=<%= @port_prefix %><%= @port_sub_prefix %>999 -Dcom.sun.management.jmxremote.ssl=false"
+   JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=<%= get_var(@port_prefix, /^\d+$/) %><%= get_var(@port_sub_prefix,/^\d+$/) %>999 -Dcom.sun.management.jmxremote.ssl=false"
     JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.authenticate=true"
-    JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.password.file=<%= @deploymentdir %>/conf/jmxremote.password"
-    JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.access.file=<%= @deploymentdir %>/conf/jmxremote.access"
-    JAVA_OPTS="$JAVA_OPTS <%= @javaopts %>"
+    JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.password.file=<%= get_var(@deploymentdir,/.+/) %>/conf/jmxremote.password"
+    JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.access.file=<%= get_var(@deploymentdir,/.+/) %>/conf/jmxremote.access"
+    JAVA_OPTS="$JAVA_OPTS <%= get_var(@javaopts,/.*/) %>"
 fi
 
-# http://blog.ralscha.ch/?p=75
-# Vermeidet das Tomcat sich wegen JSP-Konstrukten wie diesen auf die Nase legt
-# &lt;my:tag title=?&lt;%= (String)session.getAttribute(?attrName?) %&gt;? /&gt;
-# JAVA_OPTS="$JAVA_OPTS -Dorg.apache.jasper.compiler.Parser.STRICT_QUOTE_ESCAPING=false"
-
-DEBUG="<%= @debug_port %>"
+DEBUG="<%= get_var(@debug_port,/.+/) %>"
 if ( [ "$1" = "start" ] && [ "$DEBUG" = "yes" ] );then
-    DEBUG_PORT="<%= @port_prefix %><%= @port_sub_prefix %>000"
+    DEBUG_PORT="<%= get_var(@port_prefix, /\d+/) %><%= get_var(@port_sub_prefix,/^\d+$/) %>000"
     echo "START DEBUG PORT $DEBUG_PORT"
     export JAVA_OPTS="$JAVA_OPTS -Xrunjdwp:transport=dt_socket,address=$DEBUG_PORT,server=y,suspend=n"
 fi
@@ -72,11 +87,10 @@ fi
 
 # Start of extra lines added setenv_extra
 <% @setenv_extra.flatten.each do |entry| -%>
-<%= entry %>
+<%= get_var(entry, /.+/) %>
 <% end -%>
 # End of extra lines added setenv_extra
 
 
-# Make JAVA_OPTS visable to all child processes
+# Make JAVA_OPTS visible to all child processes
 export JAVA_OPTS
-

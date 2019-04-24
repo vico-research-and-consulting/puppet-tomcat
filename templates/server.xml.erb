@@ -81,6 +81,8 @@ end
     -->
     <Connector port="<%= @port_prefix %><%= @port_sub_prefix %>080" protocol="HTTP/1.1"
                connectionTimeout="20000"
+               maxPostSize="<%= @max_PostSize %>" maxParameterCount="<%= @max_ParameterCount %>" 
+               compression="on" compressibleMimeType="text/html,text/xml,text/plain,text/javascript,text/css"
                maxHttpHeaderSize="<%= @max_header_size %>" URIEncoding="UTF-8"
                redirectPort="<%= @port_prefix %><%= @port_sub_prefix %>443" maxThreads="<%= @maxThreads %>" />
 

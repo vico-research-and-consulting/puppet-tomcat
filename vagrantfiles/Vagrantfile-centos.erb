@@ -76,6 +76,8 @@ Vagrant.configure("2") do |c|
     ln -snf /opt/puppetlabs/puppet/bin/ruby /opt/chef/embedded/bin/
     cd /etc/
     dpkg --get-selections|awk '$2 ~ /^install$/{print  $1}'|sort > package.list
+    git config --global user.email "you@example.com"
+    git config --global user.name "Your Name"
     git init
     git add -A .
     git commit -m "initial state" -a

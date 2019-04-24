@@ -3,7 +3,7 @@ def get_var(value, regex)
   if ( value =~ regex )
     return value
   else
-    raise ArgumentError, "#{value} does not match to #{regex}"
+    raise ArgumentError, ">>>#{value}<<< does not match to regex >>>#{regex}<<< : #{caller[0]}"
   end
 end
 -%>
@@ -72,11 +72,11 @@ tomcat_pids(){
 #### 
 #### MAIN
 
-TOMCAT_INSTANCE="<%= @instancename %>"
-TOMCAT_PATH="<%= @deploymentdir %>"
-TOMCAT_LOGDIR="<%= @logbasedir %>/<%= @instancename %>"
-TOMCAT_USER="<%= @user %>"
-TOMCAT_GROUP="<%= @group %>"
+TOMCAT_INSTANCE="<%= get_var(@instancename, /.+/) %>"
+TOMCAT_PATH="<%= get_var(@deploymentdir, /.+/) %>"
+TOMCAT_LOGDIR="<%= get_var(@logbasedir,/.+/) %>/<%= get_var(@instancename,/.+/) %>"
+TOMCAT_USER="<%= get_var(@user,/.+/) %>"
+TOMCAT_GROUP="<%= get_var(@group,/.+/) %>"
 
 echo "******************************************************************************"
 echo "TOMCAT INSTANCE : $TOMCAT_INSTANCE"

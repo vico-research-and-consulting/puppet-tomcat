@@ -6,6 +6,7 @@ define tomcat::instance (
   String $user                                                           = $tomcat::user,
   String $group                                                          = $tomcat::group,
   Boolean $manage_usergroup                                              = false,
+  Boolean $manage_setenv                                                 = true,
   Variant[Enum['present', 'absent'], String] $default_webapp_docs        = absent,
   Variant[Enum['present', 'absent'], String] $default_webapp_examples    = absent,
   Variant[Enum['present', 'absent'], String] $default_webapp_hostmanager = present,
@@ -22,6 +23,8 @@ define tomcat::instance (
   String $mysqldbjar                                                     = "",
   String $mariadbjar                                                     = "",
   String $context_xml_template                                           = 'tomcat/context.xml.erb',
+  String $setenv_template                                                = 'tomcat/setenv.sh.erb',
+  String $server_xml_template                                            = 'tomcat/server.xml.erb',
   Hash $template_params                                                  = {},
   String $instance_archive_base_logdir                                   = "",
   String $port_prefix                                                    = '',
@@ -29,6 +32,8 @@ define tomcat::instance (
   String $debug_port                                                     = "no",
   String $maxThreads                                                     = "100",
   String $max_header_size                                                = "4096",
+  String $max_PostSize                                                   = "10000000",
+  String $max_ParameterCount                                             = "40000",
   Array[String] $setenv_extra                                            = [],
   String $logrotate_crontab_spec                                         = "0 3 * * *",
 ) {
@@ -269,23 +274,25 @@ define tomcat::instance (
     owner   => $user,
     group   => $group,
     mode    => '0740',
-    content => template("${context_xml_template}"),
+    content => template($context_xml_template),
     require => Exec["move_tomcat-${instancename}"],
   }
   file { "${deploymentdir}/conf/server.xml":
     owner   => $user,
     group   => $group,
     mode    => '0740',
-    content => template('tomcat/server.xml.erb'),
+    content => template($server_xml_template),
     require => Exec["move_tomcat-${instancename}"],
   }
 
-  file { "${deploymentdir}/bin/setenv.sh":
-    owner   => $user,
-    group   => $group,
-    mode    => '0700',
-    content => template('tomcat/setenv.sh.erb'),
-    require => Exec["move_tomcat-${instancename}"],
+  if $manage_setenv {
+    file { "${deploymentdir}/bin/setenv.sh":
+      owner   => $user,
+      group   => $group,
+      mode    => '0700',
+      content => template($setenv_template),
+      require => Exec["move_tomcat-${instancename}"],
+    }
   }
 
   service { "tomcat-${instancename}":

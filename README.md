@@ -16,6 +16,11 @@
 
 The tomcat module installs the Apache Tomcat binary distribution.
 
+## TODOs
+
+- implement autodiscovery of minor releases
+- improve download of archive
+
 ##Module Description
 
 The Tomcat module installs the Apache Tomcat binary distribution onto your nodes.
