@@ -14,7 +14,7 @@ tomcat::instances:
      downloadurl: "http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/tomcat/tomcat-9/v9.0.19/bin/apache-tomcat-9.0.19.tar.gz"
      tarball: "apache-tomcat-9.0.19.tar.gz"
      deploymentdir: "/srv/tomcat/foobar1"
-     javaheapopts: "-Xms64M -Xmx256M"
+     javaheapopts: ""
      javaopts: ""
      default_webapp_docs: 'absent'
      default_webapp_examples: 'absent'
@@ -24,6 +24,7 @@ tomcat::instances:
      adminuser: 'admin'
      adminpassword: 'admin'
      template_params:
+        run_command: 'echo run is not available on this instance; false'
         mysql_jndi: "jdbc/fooDB"
         mysql_username: "foobar"
         mysql_password: "foobar"

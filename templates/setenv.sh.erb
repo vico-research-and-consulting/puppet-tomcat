@@ -51,7 +51,7 @@ fi
  
 # Memory Options
 # (its a good idea to size minheap == maxheap)
-JAVA_OPTS="$JAVA_OPTS <%= get_var(@javaheapopts, /-Xms.+.*-Xmx.+/) %> "
+JAVA_OPTS="$JAVA_OPTS <%= get_var(@javaheapopts, /.*/) %> "
  
 # Optimize Hotspot
 JAVA_OPTS="$JAVA_OPTS -server"

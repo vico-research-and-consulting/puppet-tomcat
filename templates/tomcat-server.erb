@@ -121,7 +121,6 @@ trap "cleanup" EXIT TERM INT
 
 case "$COMMAND" in
   start)
-
     if [ -n "$TOMCAT_PIDS" ];then
          echo
 	      echo "WARNING: Instance is already running, skipping start"
@@ -143,7 +142,11 @@ case "$COMMAND" in
     chown -R $TOMCAT_USER:$TOMCAT_GROUP $TOMCAT_LOGDIR
     chmod -R 750 $TOMCAT_LOGDIR
     echo
+<% if @template_params['start_command'] == "" %>
+    execute "<%= @template_params['start_command'] %>" $TOMCAT_USER
+<% else %>
     execute "cd $TOMCAT_PATH ; bin/startup.sh" $TOMCAT_USER
+<% end %>
     # backup exit status, to bypass signal handler
     RET="$?"
     exit $RET
@@ -158,14 +161,22 @@ case "$COMMAND" in
     echo "INVOKING: $TOMCAT_PATH/bin/catalina.sh run"
     echo
     echo "STOP WITH: STRG + c"
+<% if @template_params.key?("run_command") %>
+    execute "<%= @template_params['run_command'] %>" $TOMCAT_USER
+<% else %>
     execute "cd $TOMCAT_PATH ; bin/catalina.sh run" $TOMCAT_USER
+<% end %>
     ;;
   stop)
     echo "****************************************************************************************************"
     if [ -n "$TOMCAT_PIDS" ];then
       echo "INVOKING: $TOMCAT_PATH/bin/shutdown.sh"
       shift
+<% if @template_params['stop_command'] == "" %>
+      execute "<%= @template_params['stop_command'] %>" $TOMCAT_USER
+<% else %>
       execute "cd $TOMCAT_PATH ; bin/shutdown.sh $@" $TOMCAT_USER
+<% end %>
       RET="$?"
     else
       echo "<no corosponding process found>"
