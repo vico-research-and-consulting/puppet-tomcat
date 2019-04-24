@@ -25,6 +25,7 @@ define tomcat::instance (
   String $context_xml_template                                           = 'tomcat/context.xml.erb',
   String $setenv_template                                                = 'tomcat/setenv.sh.erb',
   String $server_xml_template                                            = 'tomcat/server.xml.erb',
+  Optional[String] $root_xml_template                                    = undef,
   Hash $template_params                                                  = {},
   String $instance_archive_base_logdir                                   = "",
   String $port_prefix                                                    = '',
@@ -283,6 +284,22 @@ define tomcat::instance (
     mode    => '0740',
     content => template($server_xml_template),
     require => Exec["move_tomcat-${instancename}"],
+  }
+
+  if $root_xml_template {
+    file { ["${deploymentdir}/conf/Catalina/", "${deploymentdir}/conf/Catalina/localhost"]:
+      ensure => 'directory',
+      owner  => $user,
+      group  => $group,
+      mode   => '0755',
+    }
+    ->file { "${deploymentdir}/conf/Catalina/localhost/ROOT.xml":
+      owner   => $user,
+      group   => $group,
+      mode    => '0640',
+      content => template($root_xml_template),
+      require => Exec["move_tomcat-${instancename}"],
+    }
   }
 
   if $manage_setenv {

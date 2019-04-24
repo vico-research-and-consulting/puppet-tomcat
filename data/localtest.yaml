@@ -23,6 +23,7 @@ tomcat::instances:
      default_webapp_root: 'absent'
      adminuser: 'admin'
      adminpassword: 'admin'
+     root_xml_template: 'tomcat/ROOT.xml.erb'
      template_params:
         run_command: 'echo run is not available on this instance; false'
         status_command: 'echo WOW COOL;true'
