@@ -34,6 +34,7 @@ tomcat::instances:
         mysql_connection_properties: "useUnicode=true;characterEncoding=utf8"
         mysql_removeAbandonedTimeout: "600"
         mysql_driverclass: "com.mysql.cj.jdbc.Driver"
+        warfile: "/tmp/lolo.war"
      mariadbjar: "http://central.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar"
      instance_archive_base_logdir: '/tmp/'
      setenv_extra:
