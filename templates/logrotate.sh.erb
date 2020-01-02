@@ -20,8 +20,8 @@ chown -v <%= @user %>:<%= @group %> "$DIR/catalina.out.${DATE}.gz"
 echo -n > "$DIR/catalina.out"
 
 
-<% if @compress_logfiles_after_days != "0" %>
-find $DIR -maxdepth 1 -mindepth 1 -mtime +<%= @compress_logfiles_after_days %> -type f ! -name "*.gz" | while read file;
+<% if @compress_logfiles_after_days > 0 %>
+   find $DIR -maxdepth 1 -mindepth 1 -mtime +<%= @compress_logfiles_after_days %> -type f \( ! -name "*.gz" -name "<%= @compress_logfiles_after_days_pattern %>" \) | while read file;
 do
     echo "zipping file $file"
     ionice -c3 nice -n 2 gzip -v "$file"
