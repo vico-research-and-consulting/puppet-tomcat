@@ -14,23 +14,25 @@ DATE="$(date --date="today - 1 day" "+%Y-%m-%d")"
 ADIR="<%= @instance_archive_base_logdir %>/$DATE/$(hostname)/<%= @instancename %>"
 
 echo "truncating and compressing catalina.out"
-cp "$DIR/catalina.out" "$DIR/catalina.out.${DATE}"
-gzip "$DIR/catalina.out.${DATE}"
-chown <%= @user %>:<%= @group %> "$DIR/catalina.out.${DATE}.gz"
+cp -v "$DIR/catalina.out" "$DIR/catalina.out.${DATE}"
+ionice -c3 nice -n 2 gzip -v "$DIR/catalina.out.${DATE}"
+chown -v <%= @user %>:<%= @group %> "$DIR/catalina.out.${DATE}.gz"
 echo -n > "$DIR/catalina.out"
 
 
-find $DIR -maxdepth 1 -mindepth 1 -mtime +1 -type f ! -name "*.gz" | while read file;
+<% if @compress_logfiles_after_days != "0" %>
+find $DIR -maxdepth 1 -mindepth 1 -mtime +<%= @compress_logfiles_after_days %> -type f ! -name "*.gz" | while read file;
 do
     echo "zipping file $file"
-    gzip $file
-    chown <%= @user %>:<%= @group %> "${file}.gz"
+    ionice -c3 nice -n 2 gzip -v "$file"
+    chown -v <%= @user %>:<%= @group %> "${file}.gz"
 done
+<% end %>
 
-find $DIR -maxdepth 1 -mindepth 1 -mtime +1 -type f | while read file;
+<% if @instance_archive_base_logdir != "" %>
+find $DIR -maxdepth 1 -mindepth 1 -mtime +1 -type f -name "*.gz" | while read file;
 do
     echo "archiving file $file to $ADIR"
-    mkdir -p $ADIR && mv $file $ADIR/
+    mkdir -p "$ADIR" && mv "$file" "$ADIR/"
 done
-
-
+<% end %>

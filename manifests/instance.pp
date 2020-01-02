@@ -27,7 +27,6 @@ define tomcat::instance (
   String $server_xml_template                                            = 'tomcat/server.xml.erb',
   Optional[String] $root_xml_template                                    = undef,
   Hash $template_params                                                  = {},
-  String $instance_archive_base_logdir                                   = "",
   String $port_prefix                                                    = '',
   String $port_sub_prefix                                                = '8',
   String $debug_port                                                     = "no",
@@ -36,7 +35,9 @@ define tomcat::instance (
   String $max_PostSize                                                   = "10000000",
   String $max_ParameterCount                                             = "40000",
   Array[String] $setenv_extra                                            = [],
+  String $instance_archive_base_logdir                                   = "",
   String $logrotate_crontab_spec                                         = "0 3 * * *",
+  Integer $compress_logfiles_after_days                                  = 0,
 ) {
 
   ## VALIDATES
@@ -329,8 +330,7 @@ define tomcat::instance (
     ],
   }
 
-  if ($instance_archive_base_logdir != "") {
-    file { "/etc/cron.d/tomcat-${instancename}":
+  file { "/etc/cron.d/tomcat-${instancename}":
       owner   => 'root',
       group   => 'root',
       mode    => '0644',
@@ -339,14 +339,13 @@ PATH=/usr/lib/sysstat:/usr/sbin:/usr/sbin:/usr/bin:/sbin:/bin
 ${logrotate_crontab_spec} root ${deploymentdir}/bin/logrotate.sh 2>&1|logger -t tomcat-${instancename}
       ",
       require => File["${deploymentdir}/bin/logrotate.sh"],
-    }
+  }
 
-    file { "${deploymentdir}/bin/logrotate.sh":
+  file { "${deploymentdir}/bin/logrotate.sh":
       owner   => $user,
       group   => $group,
       mode    => '0750',
       content => template('tomcat/logrotate.sh.erb'),
       require => Service["tomcat-${instancename}"],
-    }
   }
 }
