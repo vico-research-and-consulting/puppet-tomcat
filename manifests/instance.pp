@@ -38,6 +38,7 @@ define tomcat::instance (
   String $instance_archive_base_logdir                                   = "",
   String $logrotate_crontab_spec                                         = "0 3 * * *",
   Integer $compress_logfiles_after_days                                  = 0,
+  Integer $delete_logfiles_after_days                                    = 0,
   String $compress_logfiles_after_days_pattern                           = "*.????-??-??.*",
 ) {
 

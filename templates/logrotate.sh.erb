@@ -12,6 +12,7 @@ end
 DIR="<%= @logbasedir %>/<%= @instancename %>"
 DATE="$(date --date="today - 1 day" "+%Y-%m-%d")"
 ADIR="<%= @instance_archive_base_logdir %>/$DATE/$(hostname)/<%= @instancename %>"
+DELETE_DIR="$DIR"
 
 echo "truncating and compressing catalina.out"
 cp -v "$DIR/catalina.out" "$DIR/catalina.out.${DATE}"
@@ -29,10 +30,18 @@ do
 done
 <% end %>
 
+
 <% if @instance_archive_base_logdir != "" %>
 find $DIR -maxdepth 1 -mindepth 1 -mtime +1 -type f -name "*.gz" | while read file;
 do
     echo "archiving file $file to $ADIR"
     mkdir -p "$ADIR" && mv "$file" "$ADIR/"
 done
+DELETE_DIR="$ADIR"
 <% end %>
+
+<% if @delete_logfiles_after_days > 0 %>
+   find $DELETE_DIR  -maxdepth 1 -mindepth 1 -mtime +<%= @delete_logfiles_after_days %> -type f -name "*.gz" -delete
+<% end %>
+
+
